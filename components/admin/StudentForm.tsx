@@ -17,7 +17,7 @@ const schema = z.object({
   cpf: z.string().min(14, 'CPF inválido'),
   phone: z.string().min(10, 'Telefone inválido'),
   birthdate: z.string().min(1, 'Data obrigatória'),
-  plan: z.enum(['monthly', 'quarterly', 'semiannual', 'annual']),
+  plan: z.enum(['mensal', 'trimestral', 'semestral', 'anual']),
   planValue: z.coerce.number().positive('Valor obrigatório'),
   startDate: z.string().min(1, 'Data obrigatória'),
   password: z.string().min(6, 'Mínimo 6 caracteres').optional(),
@@ -35,7 +35,7 @@ export function StudentForm({ student, mode }: Props) {
   const [loading, setLoading] = useState(false)
 
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as any,
     defaultValues: student
       ? { name: student.name, cpf: student.cpf, phone: student.phone, birthdate: student.birthdate, plan: student.plan, planValue: student.planValue, startDate: student.startDate }
       : {},
@@ -83,10 +83,10 @@ export function StudentForm({ student, mode }: Props) {
         <Select onValueChange={(v) => setValue('plan', v as FormData['plan'])} defaultValue={student?.plan}>
           <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="monthly">Mensal</SelectItem>
-            <SelectItem value="quarterly">Trimestral</SelectItem>
-            <SelectItem value="semiannual">Semestral</SelectItem>
-            <SelectItem value="annual">Anual</SelectItem>
+            <SelectItem value="mensal">Mensal</SelectItem>
+            <SelectItem value="trimestral">Trimestral</SelectItem>
+            <SelectItem value="semestral">Semestral</SelectItem>
+            <SelectItem value="anual">Anual</SelectItem>
           </SelectContent>
         </Select>
       </div>

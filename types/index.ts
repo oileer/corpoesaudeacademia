@@ -1,8 +1,8 @@
 export type UserRole = 'admin' | 'aluno'
 export type StudentStatus = 'active' | 'inactive' | 'overdue'
-export type PlanType = 'monthly' | 'quarterly' | 'semiannual' | 'annual'
-export type PaymentMethod = 'pix' | 'cash' | 'card'
-export type PaymentStatus = 'paid' | 'pending' | 'overdue'
+export type PlanType = 'mensal' | 'trimestral' | 'semestral' | 'anual'
+export type PaymentMethod = 'pix' | 'dinheiro' | 'cartao' | 'boleto'
+export type PaymentStatus = 'paid' | 'pending' | 'overdue' | 'cancelled'
 
 export interface Student {
   id: string
@@ -25,36 +25,41 @@ export interface Exercise {
   name: string
   sets: number
   reps: string
-  load?: string
+  rest?: string
   notes?: string
 }
 
 export interface Workout {
   id: string
-  userId: string
+  studentId: string
   name: string
-  weekDays: string[]
+  description?: string
+  weekDays?: string[]
   exercises: Exercise[]
+  active: boolean
   createdAt: string
   updatedAt: string
 }
 
 export interface Payment {
   id: string
-  userId: string
-  referenceMonth: string
+  studentId: string
+  reference: string
   amount: number
-  paidAt: string
-  method: PaymentMethod
-  notes?: string
+  dueDate: string
   status: PaymentStatus
+  paymentMethod?: PaymentMethod
+  paidAt?: string
+  notes?: string
   createdAt: string
 }
 
 export interface DashboardStats {
+  totalStudents: number
   activeStudents: number
-  monthRevenue: number
-  dueSoon: Student[]
-  overdue: Student[]
-  recentPayments: Payment[]
+  inactiveStudents: number
+  dueIn7Days: number
+  monthlyRevenue: number
+  pendingPayments: number
+  overduePayments: number
 }

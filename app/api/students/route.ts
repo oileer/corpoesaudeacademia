@@ -8,7 +8,7 @@ const createSchema = z.object({
   cpf: z.string().regex(/^\d{11}$/),
   phone: z.string().min(10),
   birthdate: z.string(),
-  plan: z.enum(['monthly', 'quarterly', 'semiannual', 'annual']),
+  plan: z.enum(['mensal', 'trimestral', 'semestral', 'anual']),
   planValue: z.number().positive(),
   startDate: z.string(),
   password: z.string().min(6),

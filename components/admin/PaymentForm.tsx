@@ -24,7 +24,7 @@ export default function PaymentForm({ studentId }: { studentId: string }) {
   const [loading, setLoading] = useState(false)
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as any,
     defaultValues: { dueDate: new Date().toISOString().split('T')[0] },
   })
 

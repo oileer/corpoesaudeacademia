@@ -51,7 +51,7 @@ export default function AISuggestForm({ studentId, onSuggest }: Props) {
         </div>
         <div>
           <Label>Nível</Label>
-          <Select value={level} onValueChange={setLevel}>
+          <Select value={level} onValueChange={(v) => v && setLevel(v)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="iniciante">Iniciante</SelectItem>
@@ -62,7 +62,7 @@ export default function AISuggestForm({ studentId, onSuggest }: Props) {
         </div>
         <div>
           <Label>Dias por semana</Label>
-          <Select value={daysPerWeek} onValueChange={setDaysPerWeek}>
+          <Select value={daysPerWeek} onValueChange={(v) => v && setDaysPerWeek(v)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {[2,3,4,5,6].map(d => <SelectItem key={d} value={String(d)}>{d}x</SelectItem>)}

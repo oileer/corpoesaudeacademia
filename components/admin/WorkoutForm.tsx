@@ -38,7 +38,7 @@ export default function WorkoutForm({ studentId, defaultValues, mode }: Props) {
   const [loading, setLoading] = useState(false)
 
   const { register, control, handleSubmit, formState: { errors } } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as any,
     defaultValues: defaultValues || { exercises: [{ name: '', sets: 3, reps: '10-12', rest: '60s', notes: '' }] },
   })
 
