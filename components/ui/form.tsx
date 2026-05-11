@@ -102,7 +102,7 @@ const FormLabel = React.forwardRef<
 FormLabel.displayName = "FormLabel"
 
 const FormControl = React.forwardRef<
-  Slot,
+  HTMLElement,
   React.ComponentPropsWithoutRef<typeof Slot>
 >(({ ...props }, ref) => {
   const { error, formItemId, formDescriptionId, formMessageId } =
@@ -110,7 +110,7 @@ const FormControl = React.forwardRef<
 
   return (
     <Slot
-      ref={ref}
+      ref={ref as React.Ref<HTMLElement>}
       id={formItemId}
       aria-describedby={
         !error
