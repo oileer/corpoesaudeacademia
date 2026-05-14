@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { Student, StudentStatus } from '@/types'
-import { Pencil, Dumbbell, CreditCard, Camera, Unlock, CheckCircle, AlertCircle, XCircle, ChevronDown } from 'lucide-react'
+import { Pencil, Dumbbell, CreditCard, Camera, Unlock, CheckCircle, AlertCircle, XCircle, ChevronDown, Trash2 } from 'lucide-react'
 
 const statusConfig: Record<StudentStatus, { label: string; color: string; icon: typeof CheckCircle }> = {
   active:  { label: 'Em dia',       color: 'bg-green-100 text-green-700 border-green-200',  icon: CheckCircle },
@@ -43,6 +43,15 @@ export default function StudentDetailPage() {
     } else {
       toast.error('Erro ao alterar status')
     }
+  }
+
+  async function handleDelete() {
+    if (!confirm(`Excluir ${student?.name}? Esta ação não pode ser desfeita.`)) return
+    const res = await fetch(`/api/students/${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      toast.success('Aluno excluído')
+      router.push('/admin/students')
+    } else toast.error('Erro ao excluir aluno')
   }
 
   async function handleUnlockWorkout() {
@@ -148,6 +157,9 @@ export default function StudentDetailPage() {
         </Link>
         <Button variant="outline" className="text-green-700 border-green-300 hover:bg-green-50" onClick={handleUnlockWorkout}>
           <Unlock size={16} className="mr-2" /> Liberar Treino
+        </Button>
+        <Button variant="outline" className="text-red-600 border-red-300 hover:bg-red-50" onClick={handleDelete}>
+          <Trash2 size={16} className="mr-2" /> Excluir Aluno
         </Button>
       </div>
     </div>
