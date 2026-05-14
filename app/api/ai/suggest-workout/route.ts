@@ -66,7 +66,7 @@ Retorne APENAS JSON válido (sem markdown, sem texto extra):
       const match = cleaned.match(/\{[\s\S]*\}/)
       if (match) return NextResponse.json(JSON.parse(match[0]))
       console.error('[suggest-workout] parse error, raw:', cleaned.slice(0, 300))
-      return NextResponse.json({ error: 'Resposta da IA inválida, tente novamente.' }, { status: 500 })
+      return NextResponse.json({ error: 'Resposta da IA inválida, tente novamente.' }, { status: 422 })
     }
   } catch (err) {
     console.error('[suggest-workout] erro:', err)

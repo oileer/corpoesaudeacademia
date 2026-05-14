@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase-admin'
 import { cpfToEmail } from '@/lib/auth'
+import { rateLimit } from '@/lib/utils/rate-limit'
 
 async function findStudentByIdentifier(identifier: string) {
   const digits = identifier.replace(/\D/g, '')
@@ -14,6 +15,10 @@ async function findStudentByIdentifier(identifier: string) {
 }
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown'
+  const rl = rateLimit(`lookup:${ip}`, 10, 60_000)
+  if (!rl.ok) return NextResponse.json({ error: 'Muitas tentativas. Aguarde.' }, { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } })
+
   try {
     const { identifier } = await req.json()
     if (!identifier) return NextResponse.json({ error: 'identifier required' }, { status: 400 })

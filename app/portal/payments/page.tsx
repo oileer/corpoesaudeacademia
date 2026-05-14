@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { Payment } from '@/types'
+import { formatDate } from '@/lib/auth'
 
 const statusLabel: Record<string, string> = { pending: 'Pendente', paid: 'Pago', overdue: 'Vencido', cancelled: 'Cancelado' }
 const statusColor: Record<string, string> = {
@@ -28,8 +29,8 @@ export default function PortalPayments() {
         <div key={p.id} className="bg-white border rounded-xl p-4 flex items-center justify-between">
           <div>
             <p className="font-medium">{p.reference}</p>
-            <p className="text-sm text-gray-400">Venc.: {new Date(p.dueDate).toLocaleDateString('pt-BR')}</p>
-            {p.paidAt && <p className="text-xs text-gray-400">Pago: {new Date(p.paidAt).toLocaleDateString('pt-BR')}</p>}
+            <p className="text-sm text-gray-400">Venc.: {formatDate(p.dueDate)}</p>
+            {p.paidAt && <p className="text-xs text-gray-400">Pago: {formatDate(p.paidAt)}</p>}
           </div>
           <div className="text-right">
             <p className="font-bold">R$ {p.amount.toFixed(2)}</p>

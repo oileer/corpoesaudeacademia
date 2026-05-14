@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
+import { rateLimit } from '@/lib/utils/rate-limit'
 
 export async function GET(req: NextRequest) {
   const session = req.cookies.get('session')?.value
@@ -16,6 +17,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown'
+  const rl = rateLimit(`session:${ip}`, 10, 60_000)
+  if (!rl.ok) return NextResponse.json({ error: 'Muitas tentativas. Aguarde.' }, { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } })
+
   const { idToken } = await req.json()
   const expiresIn = 60 * 60 * 24 * 14 * 1000 // 14 days
 

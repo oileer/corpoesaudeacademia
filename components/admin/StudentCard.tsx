@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { formatDate } from '@/lib/auth'
 import { Badge } from '@/components/ui/badge'
 import { Student } from '@/types'
 import { differenceInDays } from 'date-fns'
@@ -57,7 +58,7 @@ export function StudentCard({ student }: { student: Student }) {
             wStatus === 'unlocked' ? 'text-green-600' :
             wStatus === 'expiring' ? 'text-amber-600' : 'text-gray-400'
           }`}>
-            {wStatus === 'unlocked' && `Treino liberado até ${new Date(student.workoutUnlockedUntil!).toLocaleDateString('pt-BR')}`}
+            {wStatus === 'unlocked' && `Treino liberado até ${formatDate(student.workoutUnlockedUntil!)}`}
             {wStatus === 'expiring' && `Expira em ${differenceInDays(new Date(student.workoutUnlockedUntil!), new Date())}d`}
             {wStatus === 'locked' && 'Treino bloqueado'}
           </span>

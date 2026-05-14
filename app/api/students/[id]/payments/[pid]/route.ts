@@ -7,10 +7,16 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { id, pid } = await params
   const body = await req.json()
-  if (body.action === 'mark_paid') {
-    await markPaid(id, pid, body.paymentMethod || 'pix')
-  } else {
-    await updatePayment(id, pid, body)
+  try {
+    if (body.action === 'mark_paid') {
+      await markPaid(id, pid, body.paymentMethod || 'pix')
+    } else {
+      await updatePayment(id, pid, body)
+    }
+    return NextResponse.json({ success: true })
+  } catch (err: any) {
+    if (err.code === 'ALREADY_PAID') return NextResponse.json({ error: err.message }, { status: 400 })
+    if (err.code === 'NOT_FOUND') return NextResponse.json({ error: err.message }, { status: 404 })
+    throw err
   }
-  return NextResponse.json({ success: true })
 }

@@ -27,6 +27,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const body = await req.json()
   const parsed = schema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
-  const payment = await createPayment(id, parsed.data)
-  return NextResponse.json(payment, { status: 201 })
+  try {
+    const payment = await createPayment(id, parsed.data)
+    return NextResponse.json(payment, { status: 201 })
+  } catch (err: any) {
+    if (err.code === 'DUPLICATE') return NextResponse.json({ error: err.message }, { status: 409 })
+    throw err
+  }
 }

@@ -28,6 +28,15 @@ export function formatCPF(value: string): string {
     .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
 }
 
+// Evita off-by-one de fuso ao parsear datas YYYY-MM-DD (sem hora)
+export function parseLocalDate(dateStr: string): Date {
+  return new Date(dateStr.length === 10 ? dateStr + 'T12:00:00' : dateStr)
+}
+
+export function formatDate(dateStr: string): string {
+  return parseLocalDate(dateStr).toLocaleDateString('pt-BR')
+}
+
 export function planDueDateFromStart(startDate: string, plan: string): string {
   const date = new Date(startDate)
   const months: Record<string, number> = {

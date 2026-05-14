@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { Student, StudentStatus } from '@/types'
 import { Pencil, Dumbbell, CreditCard, Camera, Unlock, CheckCircle, AlertCircle, XCircle, ChevronDown, Trash2 } from 'lucide-react'
+import { formatDate } from '@/lib/auth'
 
 const statusConfig: Record<StudentStatus, { label: string; color: string; icon: typeof CheckCircle }> = {
   active:  { label: 'Em dia',       color: 'bg-green-100 text-green-700 border-green-200',  icon: CheckCircle },
@@ -110,7 +111,7 @@ export default function StudentDetailPage() {
         {student.workoutUnlockedUntil && (
           <div className="flex justify-between">
             <span className="text-gray-500">Treino liberado até</span>
-            <span className="font-medium text-green-600">{new Date(student.workoutUnlockedUntil).toLocaleDateString('pt-BR')}</span>
+            <span className="font-medium text-green-600">{formatDate(student.workoutUnlockedUntil)}</span>
           </div>
         )}
 

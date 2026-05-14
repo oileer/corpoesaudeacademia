@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 import { Student } from '@/types'
 import { Search, CreditCard, CheckCircle, Clock, AlertCircle, Dumbbell } from 'lucide-react'
+import { formatDate } from '@/lib/auth'
 import { workoutStatus } from '@/components/admin/StudentCard'
 
 interface StudentWithPayment extends Student {
@@ -142,7 +143,7 @@ export default function PaymentsPage() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
                         <Link href={`/admin/students/${s.id}`} className="font-semibold text-gray-900 hover:text-blue-600 truncate block">{s.name}</Link>
-                        <p className="text-xs text-gray-400 capitalize">{s.plan} {s.lastPaymentDue ? `· vence ${new Date(s.lastPaymentDue).toLocaleDateString('pt-BR')}` : ''}</p>
+                        <p className="text-xs text-gray-400 capitalize">{s.plan} {s.lastPaymentDue ? `· vence ${formatDate(s.lastPaymentDue)}` : ''}</p>
                       </div>
                       <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium shrink-0 ${cfg.color}`}>
                         <Icon size={11} />{cfg.label}

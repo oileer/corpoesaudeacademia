@@ -46,8 +46,14 @@ export async function GET(req: NextRequest) {
   const studentsWithoutWorkout = totalStudents - studentsWithWorkout
 
   // Pagamentos do mês selecionado
-  const paymentsSnap = await adminDb.collectionGroup('payments').get()
-  const allPayments = paymentsSnap.docs.map(d => d.data() as any)
+  let allPayments: any[] = []
+  try {
+    const paymentsSnap = await adminDb.collectionGroup('payments').get()
+    allPayments = paymentsSnap.docs.map(d => d.data() as any)
+  } catch (err: any) {
+    console.error('[dashboard] collectionGroup error:', err?.message)
+    // Continua com dados financeiros zerados — não quebra o dashboard
+  }
 
   // Pagamentos do mês: filtra por dueDate ou paidAt dentro do mês
   const monthPayments = allPayments.filter(p => {

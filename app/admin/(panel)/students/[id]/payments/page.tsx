@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
+import { formatDate } from '@/lib/auth'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
@@ -74,7 +75,7 @@ export default function StudentPaymentsPage() {
                 <tr key={p.id} className="border-t">
                   <td className="p-3">{p.reference}</td>
                   <td className="p-3">R$ {p.amount.toFixed(2)}</td>
-                  <td className="p-3">{new Date(p.dueDate).toLocaleDateString('pt-BR')}</td>
+                  <td className="p-3">{formatDate(p.dueDate)}</td>
                   <td className="p-3">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColor[p.status]}`}>{statusLabel[p.status]}</span>
                   </td>

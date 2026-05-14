@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireAdmin } from '@/lib/utils/require-admin'
-import { getStudent, updateStudent, deactivateStudent } from '@/lib/services/students'
+import { getStudent, updateStudent, deleteStudent } from '@/lib/services/students'
 
 const updateSchema = z.object({
   name: z.string().min(2).optional(),
@@ -38,6 +38,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const user = await requireAdmin(req)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { id } = await params
-  await deactivateStudent(id)
+  await deleteStudent(id)
   return NextResponse.json({ ok: true })
 }

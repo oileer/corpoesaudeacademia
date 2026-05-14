@@ -86,10 +86,19 @@ export async function updateStudent(id: string, data: Partial<Student>): Promise
   await adminDb.collection('users').doc(id).update(update)
 }
 
-export async function deactivateStudent(id: string): Promise<void> {
-  await adminDb.collection('users').doc(id).update({
-    status: 'inactive',
-    updatedAt: new Date().toISOString(),
-  })
-  await adminAuth.updateUser(id, { disabled: true })
+export async function deleteStudent(id: string): Promise<void> {
+  // Deleta subcoleções em batch
+  const batch = adminDb.batch()
+
+  const workoutsSnap = await adminDb.collection('users').doc(id).collection('workouts').get()
+  workoutsSnap.docs.forEach(d => batch.delete(d.ref))
+
+  const paymentsSnap = await adminDb.collection('users').doc(id).collection('payments').get()
+  paymentsSnap.docs.forEach(d => batch.delete(d.ref))
+
+  batch.delete(adminDb.collection('users').doc(id))
+  await batch.commit()
+
+  // Remove do Firebase Auth (ignora se não existir)
+  try { await adminAuth.deleteUser(id) } catch {}
 }
