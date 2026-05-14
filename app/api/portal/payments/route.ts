@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     const decoded = await adminAuth.verifySessionCookie(session, true)
-    const snap = await adminDb.collection('students').doc(decoded.uid).collection('payments').orderBy('dueDate', 'desc').get()
+    const snap = await adminDb.collection('users').doc(decoded.uid).collection('payments').orderBy('dueDate', 'desc').get()
     return NextResponse.json(snap.docs.map(d => ({ id: d.id, ...d.data() })))
   } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

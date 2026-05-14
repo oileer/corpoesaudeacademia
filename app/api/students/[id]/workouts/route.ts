@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/utils/require-admin'
-import { listWorkouts, createWorkout } from '@/lib/services/workouts'
+import { listWorkouts, createWorkout, deleteAllWorkouts } from '@/lib/services/workouts'
 import { z } from 'zod'
 
 const exerciseSchema = z.object({
@@ -19,6 +19,14 @@ const workoutSchema = z.object({
   active: z.boolean().default(true),
 })
 
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const user = await requireAdmin(req)
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { id } = await params
+  await deleteAllWorkouts(id)
+  return NextResponse.json({ ok: true })
+}
+
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await requireAdmin(req)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -34,6 +42,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const body = await req.json()
   const parsed = workoutSchema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
-  const workout = await createWorkout(id, parsed.data)
+  const data = parsed.data
+  if (data.weekDays) data.weekDays = [...new Set(data.weekDays)]
+  const workout = await createWorkout(id, data)
   return NextResponse.json(workout, { status: 201 })
 }

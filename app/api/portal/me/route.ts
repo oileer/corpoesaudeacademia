@@ -6,9 +6,19 @@ export async function GET(req: NextRequest) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     const decoded = await adminAuth.verifySessionCookie(session, true)
-    const doc = await adminDb.collection('students').doc(decoded.uid).get()
+    const ref = adminDb.collection('users').doc(decoded.uid)
+    const doc = await ref.get()
     if (!doc.exists) return NextResponse.json({ error: 'Student not found' }, { status: 404 })
-    return NextResponse.json({ id: doc.id, ...doc.data() })
+
+    const data = doc.data()!
+
+    // Auto-marca onboardingComplete para alunos antigos que já têm cpf + birthdate
+    if (!data.onboardingComplete && data.cpf && data.birthdate) {
+      await ref.update({ onboardingComplete: true })
+      data.onboardingComplete = true
+    }
+
+    return NextResponse.json({ id: doc.id, ...data })
   } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

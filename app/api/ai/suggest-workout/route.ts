@@ -1,30 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/utils/require-admin'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import Anthropic from '@anthropic-ai/sdk'
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 export async function POST(req: NextRequest) {
   const user = await requireAdmin(req)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { objective, level, restrictions, daysPerWeek } = await req.json()
+  try {
+    const body = await req.json()
+    const objective = String(body.objective ?? '').slice(0, 200)
+    const level = String(body.level ?? '').slice(0, 50)
+    const restrictions = String(body.restrictions ?? '').slice(0, 300)
+    const daysPerWeek = Math.min(5, Math.max(1, Number(body.daysPerWeek) || 3))
 
-  const prompt = `Você é um personal trainer experiente. Crie um plano de treino personalizado em JSON.
+    const diasDisponiveis = ['segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'].slice(0, daysPerWeek)
+
+    const prompt = `Você é um personal trainer experiente. Crie um plano de treino personalizado em JSON.
 
 Dados do aluno:
 - Objetivo: ${objective}
 - Nível: ${level}
 - Restrições/lesões: ${restrictions || 'nenhuma'}
-- Dias disponíveis por semana: ${daysPerWeek || 3}
+- Dias disponíveis por semana: ${daysPerWeek} (${diasDisponiveis.join(', ')})
 
-Retorne APENAS JSON válido no seguinte formato (sem markdown, sem texto extra):
+REGRAS OBRIGATÓRIAS:
+1. Crie exatamente ${daysPerWeek} treino(s), um para cada dia disponível.
+2. CADA DIA deve aparecer em UM ÚNICO treino — NUNCA repita o mesmo dia em treinos diferentes.
+3. Distribua os dias assim: cada treino recebe seu(s) próprio(s) dia(s) sem sobreposição.
+4. Use apenas os dias: segunda, terça, quarta, quinta, sexta, sábado, domingo.
+
+Retorne APENAS JSON válido (sem markdown, sem texto extra):
 {
   "workouts": [
     {
       "name": "Treino A — Peito e Tríceps",
       "description": "Foco em hipertrofia",
-      "weekDays": ["segunda", "quinta"],
+      "weekDays": ["segunda"],
       "exercises": [
         {
           "name": "Supino Reto",
@@ -38,16 +51,25 @@ Retorne APENAS JSON válido no seguinte formato (sem markdown, sem texto extra):
   ]
 }`
 
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
-  const result = await model.generateContent(prompt)
-  const text = result.response.text().trim()
+    const message = await client.messages.create({
+      model: 'claude-haiku-4-5',
+      max_tokens: 2048,
+      messages: [{ role: 'user', content: prompt }],
+    })
 
-  try {
-    const json = JSON.parse(text)
-    return NextResponse.json(json)
-  } catch {
-    const match = text.match(/\{[\s\S]*\}/)
-    if (match) return NextResponse.json(JSON.parse(match[0]))
-    return NextResponse.json({ error: 'AI response parse error', raw: text }, { status: 500 })
+    const text = (message.content[0] as { type: string; text: string }).text.trim()
+    const cleaned = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim()
+
+    try {
+      return NextResponse.json(JSON.parse(cleaned))
+    } catch {
+      const match = cleaned.match(/\{[\s\S]*\}/)
+      if (match) return NextResponse.json(JSON.parse(match[0]))
+      console.error('[suggest-workout] parse error, raw:', cleaned.slice(0, 300))
+      return NextResponse.json({ error: 'Resposta da IA inválida, tente novamente.' }, { status: 500 })
+    }
+  } catch (err) {
+    console.error('[suggest-workout] erro:', err)
+    return NextResponse.json({ error: 'Erro interno ao gerar treino.' }, { status: 500 })
   }
 }

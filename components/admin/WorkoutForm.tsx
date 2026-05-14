@@ -61,10 +61,16 @@ export default function WorkoutForm({ studentId, defaultValues, mode }: Props) {
     setLoading(false)
     if (res.ok) {
       toast.success(mode === 'create' ? 'Treino criado!' : 'Treino atualizado!')
-      router.push(`/admin/students/${studentId}`)
+      if (mode === 'create') {
+        const created = await res.json()
+        router.push(`/admin/students/${studentId}/workouts/${created.id}/edit`)
+      } else {
+        router.push(`/admin/students/${studentId}/workouts`)
+      }
       router.refresh()
     } else {
-      toast.error('Erro ao salvar treino')
+      const err = await res.json().catch(() => ({}))
+      toast.error('Erro ao salvar treino: ' + (err?.error ? JSON.stringify(err.error) : 'tente novamente'))
     }
   }
 

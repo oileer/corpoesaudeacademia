@@ -5,9 +5,10 @@ import { cpfToEmail, planDueDateFromStart } from '@/lib/auth'
 export async function listStudents(): Promise<Student[]> {
   const snap = await adminDb.collection('users')
     .where('role', '==', 'aluno')
-    .orderBy('name')
     .get()
-  return snap.docs.map(d => ({ id: d.id, ...d.data() } as Student))
+  return snap.docs
+    .map(d => ({ id: d.id, ...d.data() } as Student))
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
 }
 
 export async function getStudent(id: string): Promise<Student | null> {
@@ -18,48 +19,62 @@ export async function getStudent(id: string): Promise<Student | null> {
 
 interface CreateStudentInput {
   name: string
-  cpf: string
+  cpf?: string
   phone: string
-  birthdate: string
+  birthdate?: string
   plan: PlanType
   planValue: number
   startDate: string
-  password: string
+  password?: string
 }
 
 export async function createStudent(input: CreateStudentInput): Promise<Student> {
-  const email = cpfToEmail(input.cpf)
-  const dueDate = planDueDateFromStart(input.startDate, input.plan)
   const now = new Date().toISOString()
+  const onboardingComplete = !!(input.cpf && input.password && input.birthdate)
+  const dueDate = planDueDateFromStart(input.startDate, input.plan)
 
-  const firebaseUser = await adminAuth.createUser({
-    email,
-    password: input.password,
-    displayName: input.name,
-  })
+  let uid: string
+  let email: string | undefined
 
-  const studentData: Omit<Student, 'id'> = {
+  if (input.cpf && input.password) {
+    email = cpfToEmail(input.cpf)
+    const firebaseUser = await adminAuth.createUser({
+      email,
+      password: input.password,
+      displayName: input.name,
+    })
+    uid = firebaseUser.uid
+  } else {
+    // Cadastro rápido: só Firestore, sem Firebase Auth ainda
+    const ref = adminDb.collection('users').doc()
+    uid = ref.id
+  }
+
+  const studentData = {
     name: input.name,
-    cpf: input.cpf,
-    email,
+    ...(input.cpf ? { cpf: input.cpf, email: email ?? cpfToEmail(input.cpf) } : {}),
     phone: input.phone,
-    birthdate: input.birthdate,
+    ...(input.birthdate ? { birthdate: input.birthdate } : {}),
     plan: input.plan,
     planValue: input.planValue,
     startDate: input.startDate,
     dueDate,
-    status: 'active',
-    role: 'aluno',
+    status: 'active' as const,
+    role: 'aluno' as const,
+    onboardingComplete,
     createdAt: now,
     updatedAt: now,
   }
 
-  await adminDb.collection('users').doc(firebaseUser.uid).set(studentData)
-  return { id: firebaseUser.uid, ...studentData }
+  await adminDb.collection('users').doc(uid).set(studentData)
+  return { id: uid, ...studentData } as Student
 }
 
 export async function updateStudent(id: string, data: Partial<Student>): Promise<void> {
-  const update: Record<string, unknown> = { ...data, updatedAt: new Date().toISOString() }
+  // Prevent privilege escalation — never allow overwriting identity fields
+  const { role, email, cpf, createdAt, ...safe } = data as Record<string, unknown>
+  void role; void email; void cpf; void createdAt
+  const update: Record<string, unknown> = { ...safe, updatedAt: new Date().toISOString() }
   if (data.plan || data.startDate) {
     const docSnap = await adminDb.collection('users').doc(id).get()
     const current = docSnap.data() as Student

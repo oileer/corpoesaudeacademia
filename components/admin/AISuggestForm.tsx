@@ -19,9 +19,13 @@ export default function AISuggestForm({ studentId, onSuggest }: Props) {
   const [level, setLevel] = useState('iniciante')
   const [restrictions, setRestrictions] = useState('')
   const [daysPerWeek, setDaysPerWeek] = useState('3')
+  const [errors, setErrors] = useState<{ objective?: string }>({})
 
   async function handleSuggest() {
-    if (!objective) { toast.error('Informe o objetivo do aluno'); return }
+    const newErrors: { objective?: string } = {}
+    if (!objective.trim()) newErrors.objective = 'Informe o objetivo do aluno'
+    setErrors(newErrors)
+    if (Object.keys(newErrors).length > 0) return
     setLoading(true)
     const res = await fetch('/api/ai/suggest-workout', {
       method: 'POST',
@@ -29,12 +33,13 @@ export default function AISuggestForm({ studentId, onSuggest }: Props) {
       body: JSON.stringify({ objective, level, restrictions, daysPerWeek: Number(daysPerWeek) }),
     })
     setLoading(false)
-    if (res.ok) {
-      const data = await res.json()
+    const data = await res.json().catch(() => null)
+    if (res.ok && data?.workouts?.length) {
       onSuggest(data.workouts)
       toast.success(`IA gerou ${data.workouts.length} treino(s)!`)
     } else {
-      toast.error('Erro ao gerar sugestão')
+      console.error('AI suggest error:', res.status, data)
+      toast.error(data?.error ?? `Erro ${res.status} — tente novamente`)
     }
   }
 
@@ -47,7 +52,13 @@ export default function AISuggestForm({ studentId, onSuggest }: Props) {
       <div className="grid grid-cols-2 gap-3">
         <div className="col-span-2">
           <Label>Objetivo do aluno</Label>
-          <Input value={objective} onChange={e => setObjective(e.target.value)} placeholder="ex: emagrecer, ganhar massa, definir" />
+          <Input
+            value={objective}
+            onChange={e => { setObjective(e.target.value); if (e.target.value.trim()) setErrors({}) }}
+            placeholder="ex: emagrecer, ganhar massa, definir"
+            className={errors.objective ? 'border-red-500 focus-visible:ring-red-500' : ''}
+          />
+          {errors.objective && <p className="text-red-500 text-xs mt-1">{errors.objective}</p>}
         </div>
         <div>
           <Label>Nível</Label>
@@ -65,7 +76,7 @@ export default function AISuggestForm({ studentId, onSuggest }: Props) {
           <Select value={daysPerWeek} onValueChange={(v) => v && setDaysPerWeek(v)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {[2,3,4,5,6].map(d => <SelectItem key={d} value={String(d)}>{d}x</SelectItem>)}
+              {[2,3,4,5].map(d => <SelectItem key={d} value={String(d)}>{d}x</SelectItem>)}
             </SelectContent>
           </Select>
         </div>

@@ -1,17 +1,27 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { signOut } from 'firebase/auth'
+import { auth } from '@/lib/firebase'
 import { Student } from '@/types'
-import { CalendarDays, Dumbbell, CreditCard } from 'lucide-react'
+import { Dumbbell, CreditCard, LogOut } from 'lucide-react'
 import Link from 'next/link'
 
 const planLabel: Record<string, string> = { mensal: 'Mensal', trimestral: 'Trimestral', semestral: 'Semestral', anual: 'Anual' }
 
 export default function PortalHome() {
   const [student, setStudent] = useState<Student | null>(null)
+  const router = useRouter()
 
   useEffect(() => {
     fetch('/api/portal/me').then(r => r.json()).then(setStudent)
   }, [])
+
+  async function handleLogout() {
+    await signOut(auth)
+    await fetch('/api/auth/session', { method: 'DELETE' })
+    router.push('/')
+  }
 
   if (!student) return (
     <div className="p-6 space-y-4">
@@ -25,9 +35,14 @@ export default function PortalHome() {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <p className="text-gray-500 text-sm">Bem-vindo,</p>
-        <h1 className="text-2xl font-bold">{student.name}</h1>
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-gray-500 text-sm">Bem-vindo,</p>
+          <h1 className="text-2xl font-bold">{student.name}</h1>
+        </div>
+        <button onClick={handleLogout} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-red-500 transition-colors mt-1">
+          <LogOut className="w-4 h-4" /> Sair
+        </button>
       </div>
 
       <div className="bg-blue-600 text-white rounded-xl p-5 space-y-2">

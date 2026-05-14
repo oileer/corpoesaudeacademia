@@ -17,6 +17,9 @@ export interface Student {
   dueDate: string
   status: StudentStatus
   role: 'aluno'
+  instagramHandle?: string
+  workoutUnlockedUntil?: string
+  onboardingComplete?: boolean
   createdAt: string
   updatedAt: string
 }

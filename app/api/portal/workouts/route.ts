@@ -6,8 +6,11 @@ export async function GET(req: NextRequest) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     const decoded = await adminAuth.verifySessionCookie(session, true)
-    const snap = await adminDb.collection('students').doc(decoded.uid).collection('workouts').where('active', '==', true).get()
-    return NextResponse.json(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+    const snap = await adminDb.collection('users').doc(decoded.uid).collection('workouts').where('active', '==', true).get()
+    const workouts = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .sort((a: any, b: any) => a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' }))
+    return NextResponse.json(workouts)
   } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

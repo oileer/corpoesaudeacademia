@@ -4,10 +4,14 @@ export async function middleware(req: NextRequest) {
   const session = req.cookies.get('session')?.value
   const { pathname } = req.nextUrl
 
+  const isAdminLogin = pathname === '/admin/login'
+  const isStudentLogin = pathname === '/login'
+  const isAdminArea = pathname.startsWith('/admin') && !isAdminLogin
+  const isPortalArea = pathname.startsWith('/portal')
+
   if (!session) {
-    if (pathname.startsWith('/admin') || pathname.startsWith('/portal')) {
-      return NextResponse.redirect(new URL('/login', req.url))
-    }
+    if (isAdminArea) return NextResponse.redirect(new URL('/admin/login', req.url))
+    if (isPortalArea) return NextResponse.redirect(new URL('/login', req.url))
     return NextResponse.next()
   }
 
@@ -16,28 +20,31 @@ export async function middleware(req: NextRequest) {
   })
 
   if (!verifyRes.ok) {
-    const response = NextResponse.redirect(new URL('/login', req.url))
-    response.cookies.delete('session')
-    return response
+    const res = isAdminLogin || isAdminArea
+      ? NextResponse.redirect(new URL('/admin/login', req.url))
+      : NextResponse.redirect(new URL('/login', req.url))
+    res.cookies.delete('session')
+    return res
   }
 
   const { role } = await verifyRes.json()
 
-  if (pathname.startsWith('/admin') && role !== 'admin') {
-    return NextResponse.redirect(new URL('/portal', req.url))
+  if (isAdminArea && role !== 'admin') {
+    return NextResponse.redirect(new URL('/login', req.url))
   }
-  if (pathname.startsWith('/portal') && role !== 'aluno') {
+  if (isPortalArea && role !== 'aluno') {
     return NextResponse.redirect(new URL('/admin', req.url))
   }
-  if (pathname === '/login') {
-    return NextResponse.redirect(
-      new URL(role === 'admin' ? '/admin' : '/portal', req.url)
-    )
+  if (isAdminLogin) {
+    return NextResponse.redirect(new URL(role === 'admin' ? '/admin' : '/portal', req.url))
+  }
+  if (isStudentLogin) {
+    return NextResponse.redirect(new URL(role === 'aluno' ? '/portal' : '/admin', req.url))
   }
 
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/portal/:path*', '/login'],
+  matcher: ['/admin/:path*', '/portal/:path*', '/login', '/admin/login'],
 }
