@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { signInWithEmailAndPassword, getIdToken } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
@@ -20,7 +20,7 @@ interface OnboardingState {
 
 const steps = ['Boas-vindas', 'Seus dados', 'Criar senha', 'Pronto!']
 
-export default function OnboardingPage() {
+function OnboardingContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [step, setStep] = useState(0)
@@ -254,5 +254,13 @@ export default function OnboardingPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense>
+      <OnboardingContent />
+    </Suspense>
   )
 }
