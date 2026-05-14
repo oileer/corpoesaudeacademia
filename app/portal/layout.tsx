@@ -29,13 +29,16 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
     fetch('/api/portal/me')
       .then(r => r.json())
-      .then((s: Student) => {
+      .then((s: Student & { pendingActivation?: boolean }) => {
+        if (s.pendingActivation || s.status === 'inactive') {
+          router.replace('/portal/aguardando')
+          return
+        }
         if (!isProfileComplete(s)) {
           router.replace('/portal/profile-setup')
-          // Deixa checked=false enquanto redireciona (mostra spinner)
-        } else {
-          setChecked(true)
+          return
         }
+        setChecked(true)
       })
       .catch(() => setChecked(true))
   }, [])

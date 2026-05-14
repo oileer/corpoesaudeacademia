@@ -42,9 +42,10 @@ type EditData = z.infer<typeof editSchema>
 interface Props {
   student?: Student
   mode: 'create' | 'edit'
+  isActivation?: boolean
 }
 
-export function StudentForm({ student, mode }: Props) {
+export function StudentForm({ student, mode, isActivation }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [quickMode, setQuickMode] = useState(false)
@@ -66,10 +67,12 @@ export function StudentForm({ student, mode }: Props) {
 
     const url = mode === 'create' ? '/api/students' : `/api/students/${student!.id}`
     const method = mode === 'create' ? 'POST' : 'PUT'
-    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+    // Se é ativação: define status como active e remove pendingActivation
+    const finalPayload = isActivation ? { ...payload, status: 'active', pendingActivation: false } : payload
+    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(finalPayload) })
     setLoading(false)
     if (res.ok) {
-      toast.success(mode === 'create' ? 'Aluno cadastrado!' : 'Aluno atualizado!')
+      toast.success(isActivation ? 'Aluno ativado!' : mode === 'create' ? 'Aluno cadastrado!' : 'Aluno atualizado!')
       router.push('/admin/students')
     } else {
       const err = await res.json().catch(() => ({}))

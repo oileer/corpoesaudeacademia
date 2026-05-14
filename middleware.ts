@@ -10,8 +10,8 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
-  // Modo admin: bloqueia qualquer acesso a /portal e /login (aluno)
-  if (appMode === 'admin' && (pathname.startsWith('/portal') || pathname === '/login' || pathname === '/onboarding')) {
+  // Modo admin: bloqueia qualquer acesso a /portal, /login (aluno), /cadastro
+  if (appMode === 'admin' && (pathname.startsWith('/portal') || pathname === '/login' || pathname === '/onboarding' || pathname.startsWith('/cadastro'))) {
     return NextResponse.redirect(new URL('/admin/login', req.url))
   }
 
@@ -57,5 +57,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/portal/:path*', '/login', '/admin/login'],
+  matcher: ['/admin/:path*', '/portal/:path*', '/login', '/admin/login', '/cadastro/:path*'],
 }

@@ -12,6 +12,7 @@ const updateSchema = z.object({
   startDate: z.string().optional(),
   status: z.enum(['active', 'inactive', 'overdue']).optional(),
   workoutUnlockedUntil: z.string().optional(),
+  pendingActivation: z.boolean().optional(),
 })
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
