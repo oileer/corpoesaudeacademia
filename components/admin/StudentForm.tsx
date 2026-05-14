@@ -158,7 +158,7 @@ export function StudentForm({ student, mode }: Props) {
       {!quickMode && mode === 'create' && (
         <div>
           <Label>Senha inicial</Label>
-          <Input type="password" placeholder="Mínimo 6 caracteres" {...register('password')} />
+          <Input type="password" placeholder="Mínimo 6 caracteres" {...(register as any)('password')} />
           {(errors as any).password && <p className="text-red-500 text-xs mt-1">{(errors as any).password.message}</p>}
         </div>
       )}

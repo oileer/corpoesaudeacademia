@@ -3,6 +3,13 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function middleware(req: NextRequest) {
   const session = req.cookies.get('session')?.value
   const { pathname } = req.nextUrl
+  const hostname = req.headers.get('host') ?? ''
+  const isAdminHost = hostname.startsWith('admin.')
+
+  // Bloqueia /admin em domínios que não sejam admin.*
+  if (pathname.startsWith('/admin') && !isAdminHost && !hostname.includes('localhost')) {
+    return NextResponse.redirect(new URL('/login', req.url))
+  }
 
   const isAdminLogin = pathname === '/admin/login'
   const isStudentLogin = pathname === '/login'
