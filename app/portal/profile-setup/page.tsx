@@ -52,7 +52,7 @@ export default function ProfileSetupPage() {
     const payload: Record<string, string> = {}
     if (missingCpf) payload.cpf = cpf.replace(/\D/g, '')
     if (missingBirthdate) payload.birthdate = birthdate
-    if (missingInstagram || instagram !== student.instagramHandle) {
+    if (missingInstagram || instagram !== student?.instagramHandle) {
       payload.instagramHandle = instagram.replace('@', '').trim()
     }
 
