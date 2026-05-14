@@ -27,6 +27,9 @@ export default function StudentsPage() {
       .catch(() => setLoading(false))
   }, [])
 
+  const pending = students.filter(s => (s as any).pendingActivation)
+  const active = students.filter(s => !(s as any).pendingActivation)
+
   const filtered = active.filter((s) => {
     const q = search.replace(/\D/g, '') || search.toLowerCase()
     const matchSearch = !search
@@ -40,9 +43,6 @@ export default function StudentsPage() {
       || (workoutFilter === 'locked' && ws === 'locked')
     return matchSearch && matchStatus && matchWorkout
   })
-
-  const pending = students.filter(s => (s as any).pendingActivation)
-  const active = students.filter(s => !(s as any).pendingActivation)
 
   const counts = {
     locked: active.filter(s => workoutStatus(s) === 'locked').length,
