@@ -3,12 +3,16 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function middleware(req: NextRequest) {
   const session = req.cookies.get('session')?.value
   const { pathname } = req.nextUrl
-  const hostname = req.headers.get('host') ?? ''
-  const isAdminHost = hostname.startsWith('admin.')
+  const appMode = process.env.NEXT_PUBLIC_APP_MODE
 
-  // Bloqueia /admin em domínios que não sejam admin.*
-  if (pathname.startsWith('/admin') && !isAdminHost && !hostname.includes('localhost')) {
+  // Modo portal: bloqueia qualquer acesso a /admin
+  if (appMode === 'portal' && pathname.startsWith('/admin')) {
     return NextResponse.redirect(new URL('/login', req.url))
+  }
+
+  // Modo admin: bloqueia qualquer acesso a /portal e /login (aluno)
+  if (appMode === 'admin' && (pathname.startsWith('/portal') || pathname === '/login' || pathname === '/onboarding')) {
+    return NextResponse.redirect(new URL('/admin/login', req.url))
   }
 
   const isAdminLogin = pathname === '/admin/login'
