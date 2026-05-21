@@ -12,18 +12,26 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const objective = String(body.objective ?? '').slice(0, 200)
     const level = String(body.level ?? '').slice(0, 50)
+    const gender = String(body.gender ?? 'masculino') === 'feminino' ? 'feminino' : 'masculino'
     const restrictions = String(body.restrictions ?? '').slice(0, 300)
     const daysPerWeek = Math.min(5, Math.max(1, Number(body.daysPerWeek) || 3))
 
     const diasDisponiveis = ['segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'].slice(0, daysPerWeek)
+
+    const genderFocus = gender === 'feminino'
+      ? 'A aluna é do sexo feminino: priorize exercícios de membros inferiores (glúteos, posterior de coxa, quadríceps, panturrilha) na maioria dos dias. Inclua superiores apenas como complemento.'
+      : 'O aluno é do sexo masculino: priorize exercícios de membros superiores (peito, costas, ombros, bíceps, tríceps) na maioria dos dias. Inclua inferiores como complemento.'
 
     const prompt = `Você é um personal trainer experiente. Crie um plano de treino personalizado em JSON.
 
 Dados do aluno:
 - Objetivo: ${objective}
 - Nível: ${level}
+- Sexo: ${gender}
 - Restrições/lesões: ${restrictions || 'nenhuma'}
 - Dias disponíveis por semana: ${daysPerWeek} (${diasDisponiveis.join(', ')})
+
+Foco obrigatório por sexo: ${genderFocus}
 
 REGRAS OBRIGATÓRIAS:
 1. Crie exatamente ${daysPerWeek} treino(s), um para cada dia disponível.

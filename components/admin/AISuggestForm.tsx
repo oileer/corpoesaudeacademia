@@ -17,6 +17,7 @@ export default function AISuggestForm({ studentId, onSuggest }: Props) {
   const [loading, setLoading] = useState(false)
   const [objective, setObjective] = useState('')
   const [level, setLevel] = useState('iniciante')
+  const [gender, setGender] = useState('masculino')
   const [restrictions, setRestrictions] = useState('')
   const [daysPerWeek, setDaysPerWeek] = useState('3')
   const [errors, setErrors] = useState<{ objective?: string }>({})
@@ -30,7 +31,7 @@ export default function AISuggestForm({ studentId, onSuggest }: Props) {
     const res = await fetch('/api/ai/suggest-workout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ objective, level, restrictions, daysPerWeek: Number(daysPerWeek) }),
+      body: JSON.stringify({ objective, level, gender, restrictions, daysPerWeek: Number(daysPerWeek) }),
     })
     setLoading(false)
     const data = await res.json().catch(() => null)
@@ -59,6 +60,16 @@ export default function AISuggestForm({ studentId, onSuggest }: Props) {
             className={errors.objective ? 'border-red-500 focus-visible:ring-red-500' : ''}
           />
           {errors.objective && <p className="text-red-500 text-xs mt-1">{errors.objective}</p>}
+        </div>
+        <div>
+          <Label>Sexo</Label>
+          <Select value={gender} onValueChange={(v) => v && setGender(v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="masculino">Masculino</SelectItem>
+              <SelectItem value="feminino">Feminino</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div>
           <Label>Nível</Label>

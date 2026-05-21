@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { signOut } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
@@ -13,9 +13,24 @@ export default function PortalHome() {
   const [student, setStudent] = useState<Student | null>(null)
   const router = useRouter()
 
-  useEffect(() => {
-    fetch('/api/portal/me').then(r => r.json()).then(setStudent)
+  const fetchMe = useCallback(async () => {
+    const r = await fetch('/api/portal/me')
+    const d = await r.json()
+    if (d?.id) setStudent(d)
   }, [])
+
+  useEffect(() => {
+    fetchMe()
+
+    const onVisible = () => { if (document.visibilityState === 'visible') fetchMe() }
+    document.addEventListener('visibilitychange', onVisible)
+    const interval = setInterval(fetchMe, 30000)
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      clearInterval(interval)
+    }
+  }, [fetchMe])
 
   async function handleLogout() {
     await signOut(auth)
