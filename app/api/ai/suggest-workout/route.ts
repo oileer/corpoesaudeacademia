@@ -18,9 +18,18 @@ export async function POST(req: NextRequest) {
 
     const diasDisponiveis = ['segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'].slice(0, daysPerWeek)
 
-    const genderFocus = gender === 'feminino'
-      ? 'A aluna é do sexo feminino: priorize exercícios de membros inferiores (glúteos, posterior de coxa, quadríceps, panturrilha) na maioria dos dias. Inclua superiores apenas como complemento.'
-      : 'O aluno é do sexo masculino: priorize exercícios de membros superiores (peito, costas, ombros, bíceps, tríceps) na maioria dos dias. Inclua inferiores como complemento.'
+    // Divisão exata de dias por tipo de treino conforme gênero
+    const focusCountMap: Record<number, number> = { 1: 1, 2: 1, 3: 2, 4: 3, 5: 3 }
+    const focusDays = focusCountMap[daysPerWeek] ?? Math.ceil(daysPerWeek * 0.6)
+    const complementDays = daysPerWeek - focusDays
+
+    const isFeminino = gender === 'feminino'
+    const focusLabel = isFeminino ? 'INFERIOR (glúteos, posterior de coxa, quadríceps, panturrilha, abdômen)' : 'SUPERIOR (peito, costas, ombros, bíceps, tríceps, abdômen)'
+    const complementLabel = isFeminino ? 'SUPERIOR (peito, costas, ombros, bíceps, tríceps)' : 'INFERIOR (glúteos, posterior de coxa, quadríceps, panturrilha)'
+
+    const splitInstruction = complementDays > 0
+      ? `- ${focusDays} treino(s) de foco ${focusLabel}\n- ${complementDays} treino(s) de foco ${complementLabel}`
+      : `- ${focusDays} treino(s) de foco ${focusLabel}`
 
     const prompt = `Você é um personal trainer experiente. Crie um plano de treino personalizado em JSON.
 
@@ -31,7 +40,10 @@ Dados do aluno:
 - Restrições/lesões: ${restrictions || 'nenhuma'}
 - Dias disponíveis por semana: ${daysPerWeek} (${diasDisponiveis.join(', ')})
 
-Foco obrigatório por sexo: ${genderFocus}
+DIVISÃO OBRIGATÓRIA DOS TREINOS:
+${splitInstruction}
+
+ATENÇÃO: cada treino é um dia COMPLETO de academia. Mesmo nos dias de foco inferior, pode incluir 1-2 exercícios de superior como complemento, e vice-versa. O que muda é o FOCO PRINCIPAL de cada dia, não a exclusão total do outro grupo.
 
 REGRAS OBRIGATÓRIAS:
 1. Crie exatamente ${daysPerWeek} treino(s), um para cada dia disponível.
